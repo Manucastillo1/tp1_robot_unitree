@@ -40,9 +40,43 @@ def comando_es_valido(comando):
       - que el tiempo no sea negativo
     """
     # TU CODIGO ACA
-    pass
+    if type(comando) != tuple:
+        return False
 
+    if len(comando) == 0:
+        return False
 
+    nombre = comando[0]
+
+    if nombre == "detenerse" or nombre == "saludar":
+        if len(comando) == 1:
+            return True
+        else:
+            return False
+
+    if nombre == "avanzar" or nombre == "girar":
+        if len(comando) != 3:
+            return False
+
+        velocidad = comando[1]
+        tiempo = comando[2]
+
+        if type(velocidad) != int and type(velocidad) != float:
+            return False
+
+        if type(tiempo) != int and type(tiempo) != float:
+            return False
+
+        if tiempo >= 0 and tiempo <= 10:
+            if nombre == "avanzar":
+                if velocidad >= -0.2 and velocidad <= 0.2:
+                    return True
+
+            if nombre == "girar":
+                if velocidad >= -0.5 and velocidad <= 0.5:
+                    return True
+
+    return False
 # =====================================================================
 #  PARTE 2 - Ejecutar un comando
 # =====================================================================
@@ -61,14 +95,27 @@ def ejecutar_comando(robot, comando):
     Eso llega como un ErrorDeSeguridad y conviene atraparlo.
     """
     # TU CODIGO ACA
-    pass
+    nombre = comando[0]
 
+    if nombre == "avanzar":
+        robot.avanzar(velocidad=comando[1], tiempo=comando[2])
 
+    elif nombre == "girar":
+        robot.girar(velocidad=comando[1], tiempo=comando[2])
+
+    elif nombre == "detenerse":
+        robot.detenerse()
+
+    elif nombre == "saludar":
+        robot.saludar()
+
+    return "Ejecutado"
 # =====================================================================
 #  PARTE 3 - Recorrer la mision entera
 # =====================================================================
 def ejecutar_mision(robot, mision, historial):
-    """Recorre la lista de comandos, uno por uno.
+    """Recorr
+    e la lista de comandos, uno por uno.
 
     Por cada comando:
       - si NO es valido, lo rechaza y sigue con el siguiente
@@ -78,9 +125,20 @@ def ejecutar_mision(robot, mision, historial):
     Un comando invalido NO tiene que cortar la mision.
     """
     # TU CODIGO ACA
-    pass
+    for comando in mision:
+        print("Procesando:", comando)
 
+        if comando_es_valido(comando):
+            resultado = ejecutar_comando(robot, comando)
+        else:
+            resultado = "Rechazado"
 
+        registro = {
+            "comando": comando,
+            "resultado": resultado
+        }
+
+        historial.append(registro)
 # =====================================================================
 #  PARTE 4 - El reporte final
 # =====================================================================
@@ -93,6 +151,19 @@ def generar_reporte(historial):
       - cual fue el motivo de cada rechazo
     """
     # TU CODIGO ACA
+    ejecutados = 0
+    rechazados = 0
+
+    for registro in historial:
+        if registro["resultado"] == "Ejecutado":
+            ejecutados = ejecutados + 1
+        else:
+            rechazados = rechazados + 1
+            print("Comando rechazado:", registro["comando"])
+            print("Motivo: El comando es incorrecto.")
+
+    print("Comandos que fueron ejecutados:", ejecutados)
+    print("Comandos que fueron rechazados:", rechazados)
     pass
 
 
@@ -105,15 +176,11 @@ def main():
 
     historial = []
 
-    try:
-        # Empeza probando con MISION_BASICA.
-        # Cuando funcione, proba con MISION_CON_ERRORES: esa tiene
-        # comandos invalidos a proposito.
-        ejecutar_mision(robot, MISION_BASICA, historial)
-        generar_reporte(historial)
-    finally:
-        robot.detenerse()
-        robot.desconectar()
+    ejecutar_mision(robot, MISION_CON_ERRORES, historial)
+    generar_reporte(historial)
+
+    robot.detenerse()
+    robot.desconectar()
 
 
 if __name__ == "__main__":
